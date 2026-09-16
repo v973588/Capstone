@@ -106,20 +106,24 @@ tab_browse, tab_add, tab_circulation = st.tabs(
 # ===================================================================
 with tab_browse:
     st.subheader("Filter & Search Catalog")
+f_col1, f_col2 = st.columns([1, 2])
+with f_col1:
+    genres = ["Todos os Gêneros"] + summary.get("unique_genres", [])
+    selected_genre = st.selectbox("Filtrar por Gênero", options=genres)
+with f_col2:
+    search_query = st.text_input("Buscar por Autor ou Título", placeholder="Digite termos de busca...")
 
-    # 1. Create filter controls using st.columns([1, 2]):
-    #    - Left column: st.selectbox("Filter by Genre", ["All Genres"] + ...)
-    #    - Right column: st.text_input("Search by Author or Title")
-    #
-    # 2. Filter the `books` list using your backend functions:
-    #    - find_books_by_genre(books, selected_genre)
-    #    - Substring search on title/author
-    #
-    # 3. Convert the list of dicts to a pandas DataFrame:
-    #    df = pd.DataFrame(...)
-    #    st.dataframe(df, use_container_width=True, hide_index=True)
+filtered = books
+if selected_genre != "Todos os Gêneros":
+    filtered = find_books_by_genre(filtered, selected_genre)
+if search_query.strip():
+    q = search_query.strip().lower()
+    filtered = [b for b in filtered if q in b.get("title", "").lower() or q in b.get("author", "").lower()]
 
-    st.info("👉 Complete TODO 2 in app.py to display the searchable book catalog.")
+df = pd.DataFrame(filtered)
+st.dataframe(df, use_container_width=True, hide_index=True)
+
+st.info("👉 Complete TODO 2 in app.py to display the searchable book catalog.")
 
 
 # ===================================================================
@@ -127,25 +131,6 @@ with tab_browse:
 # ===================================================================
 with tab_add:
     st.subheader("Register a New Book into the Catalog")
-
-with st.form("form_cadastro_livro", clear_on_submit=True):
-    new_title = st.text_input("Título da Obra *")
-    new_author = st.text_input("Autor(es) *")
-    new_year = st.number_input("Ano de Publicação *", min_value=1500, max_value=2050, value=2024)
-    new_genres = st.text_input("Gêneros (separados por vírgula) *")
-    if st.form_submit_button("Cadastrar Livro", type="primary"):
-        next_id = max([b.get("id", 0) for b in books], default=0) + 1
-        candidate = {"id": next_id, "title": new_title.strip(), "author": new_author.strip(),
-                     "year": int(new_year), "genres": [g.strip() for g in new_genres.split(",") if g.strip()],
-                     "is_available": True}
-        try:
-            validate_book(candidate)  # Validação no backend!
-            books.append(candidate)
-            save_books(DATA_FILE, books)
-            st.success(f"Registrado com sucesso #{next_id}: {candidate['title']}!")
-            st.rerun()
-        except ValueError as e:
-            st.error(f"Erro de Validação: {e}")
 
     # 1. Create a form with: with st.form("add_book_form", clear_on_submit=True):
     # 2. Input fields:
@@ -161,7 +146,7 @@ with st.form("form_cadastro_livro", clear_on_submit=True):
     #    - Append to books and call save_books(DATA_FILE, books)
     #    - Show st.success(...) and st.rerun()
 
-st.info("👉 Complete TODO 3 in app.py to implement book registration.")
+    st.info("👉 Complete TODO 3 in app.py to implement book registration.")
 
 
 # ===================================================================
