@@ -70,6 +70,30 @@ st.info("👉 Complete TODO 1 in app.py to render library status metrics cards h
 
 st.divider()
 
+# Call backend reporting module
+summary = generate_library_summary(books)
+
+# Create 4 columns for metric cards
+m_col1, m_col2, m_col3, m_col4 = st.columns(4)
+with m_col1:
+    st.metric(label="Total Books", value=summary.get("total_books", 0))
+with m_col2:
+    st.metric(
+        label="Available on Shelf",
+        value=summary.get("available_books", 0),
+        delta=f"{summary.get('available_books', 0)} ready",
+    )
+with m_col3:
+    st.metric(
+        label="Currently Borrowed",
+        value=summary.get("borrowed_books", 0),
+        delta=f"-{summary.get('borrowed_books', 0)} out" if summary.get("borrowed_books", 0) > 0 else "None",
+        delta_color="inverse",
+    )
+with m_col4:
+    avg_yr = summary.get("average_year", 0.0)
+    st.metric(label="Average Release Year", value=f"{avg_yr:.1f}" if avg_yr > 0 else "N/A")
+
 # -------------------------------------------------------------------
 # Navigation Tabs
 # -------------------------------------------------------------------
